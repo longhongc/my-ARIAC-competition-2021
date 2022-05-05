@@ -1348,6 +1348,8 @@ void GantryArm::execute()
   auto& part_task_info = m_part_task_queue.back(); 
   auto& priority = std::get<0>(part_task_info); 
   auto& part_task = *std::get<1>(part_task_info); 
+
+
   part_task.agv_id = getAgvAtStation(part_task.station_id.c_str());
   ROS_INFO("Shipment: %s", part_task.shipment_type.c_str()); 
   ROS_INFO("Priority: %d", priority); 
@@ -1362,9 +1364,9 @@ void GantryArm::execute()
 
   ROS_INFO("camera_id: %s", camera_id.c_str()); 
 
-
   ariac_group1::PartsUnderCamera parts_under_camera_srv; 
   parts_under_camera_srv.request.camera_id = camera_id; 
+  ros::Duration(1.0).sleep(); 
   m_parts_under_camera_client.call(parts_under_camera_srv); 
 
   auto& parts = parts_under_camera_srv.response.parts; 
@@ -1377,6 +1379,7 @@ void GantryArm::execute()
     m_part_task_queue.pop_back();
     return; 
   }
+
   if (m_agvs_dict[part_task.agv_id]->get_station() != part_task.station_id) {
       return; 
   }

@@ -335,6 +335,7 @@ void KittingArm::execute()
   else {
     ROS_INFO("No valid %s, back to task queue", part_task.part.type.c_str()); 
     priority += Constants::PriorityWeight::Penalty::NO_PART;  
+    part_task.priority = priority; 
     ROS_INFO("Priority decrease to %d", priority); 
     
     if (this->check_insufficient_shipment(priority)) {
@@ -1436,16 +1437,16 @@ ShipmentState KittingArm::check_shipment_state(ariac_group1::PartTask& part_task
         return ShipmentState::HAS_WRONG_POSE; 
       }
       
-      else if (result == "missing_part" and missing_check) {
-        // only check missing part if wrong type happens before
-        missing_check = false; 
-        ROS_INFO("Has missing part in shipment %s", part_task.shipment_type.c_str()); 
-        return ShipmentState::HAS_MISSING_PART; 
+      else if (result == "missing_part") {
+        ROS_INFO("missing priority: %d", part_task.priority); 
+        if (not this->check_insufficient_shipment(part_task.priority)) {
+            ROS_INFO("Has missing part in shipment %s", part_task.shipment_type.c_str()); 
+            return ShipmentState::HAS_MISSING_PART; 
+        }
       }
-      else if (result == "shipment_correct") {
-        ROS_INFO("Shipment %s correct", part_task.shipment_type.c_str()); 
-        return ShipmentState::READY; 
-      }
+
+      ROS_INFO("Shipment %s correct", part_task.shipment_type.c_str()); 
+      return ShipmentState::READY; 
       //todo
       //else if (result == "redundant_part") {
       //   return ShipmentState::HAS_REDUNDANT_PART; 
